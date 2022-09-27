@@ -1,15 +1,28 @@
-const WebSocket = require('ws')
+const WebSocketServer = require('ws').Server
 
-const wss = new WebSocket.Server({ port: 8080 })
+const wss = new WebSocketServer({ port: 8080})
 console.log('Server started on port 8080');
 wss.on('connection', (ws) => {
-  ws.on('message', message => {
-    console.log(`Received message => ${message}`)
+  ws.on('open' ,(client) => {
+    console.log('New client connected!');
+    client.send('Hello new client!');
   })
-  ws.send('Hello! Message From Server!!')
+  ws.on('message', (message) => {
+    console.log(`Received message => ${message}`);
+  });
   //Close server after first disc
   ws.on('close', () => {
-	console.log('Closed Connection, Closing whole server!!!');
-	wss.close();
+    console.log('Some Client Closed Connection!');
+  });
+  ws.on('error', (err) => {
+	console.log(`WebSocket Error: ${err.message}`)
   })
 });
+
+//Closing server in 30 secs
+
+setTimeout(() => {
+  wss.close((err) => {
+	console.log(`Closing WsServer Error: ${err}`)
+  })
+}, 30000)
