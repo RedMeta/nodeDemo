@@ -1,14 +1,21 @@
 const WebSocket = require('ws');
+const sync_read = require('prompt-sync')({sigint: true});
 const readline = require('readline');
 const { stdin, stdout } = require('process');
 const rl = readline.createInterface({
 	input: stdin,
 	output: stdout,
-	terminal: true,
-	prompt: '>'
+	prompt: '>',
+	terminal: true
 });
 
-const url = 'ws://localhost:8080'
+const name = sync_read({ask: 'Insert your nickname here!'});
+if (name.length == 0){
+	console.log('Restart with a valid name!!');
+	process.exit(1);
+}
+
+const url = 'ws://localhost:8080?id=' + name;
 const client = new WebSocket(url)
 
 //Web socket Callbacks setting
@@ -34,10 +41,11 @@ client.on('close', () => {
 
 
 //Terminal input control
-
+rl.setPrompt('>');
 rl.on('line', (line) => {
 	line = line.trim().toString();
-	if ( line.length > 0 && client.readyState == client.OPEN){
+	console.log(line);
+	if ( line.length > 0 && client.readyState == client.OPEN && line != "exit"){
 		client.send(line);
 	}
 	else if (line == 'exit')

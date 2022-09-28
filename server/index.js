@@ -1,16 +1,22 @@
 const WebSocketServer = require('ws').Server
-
+const url = require('url');
+const uuid_v4 = require('uuid').v4;
 const wss = new WebSocketServer({ port: 8080})
+
 console.log('Server started on port 8080');
-wss.on('connection', (ws) => {
-	ws.on('open' ,(client) => {
-		console.log('New client connected!');
-		client.send('Hello new client!');
-	})
+wss.on('connection', (ws, req) => {
+	const params = url.parse(req.url, true);
+	ws.name = params.query.id;
+
+	console.log('Client ' + ws.name + ' connected!');
+	ws.send('Hello new client!');
 	ws.on('message', (message) => {
 		if (message == 'DIE'){
 			console.log('SOMEONE KILLED ME!!');
-			ws.close();
+			wss.clients.forEach( (client) => {
+				client.close();
+			} );
+			wss.close();
 		}
 		console.log(`Received message => ${message}`);
 	});
@@ -24,7 +30,7 @@ wss.on('connection', (ws) => {
 });
 
 wss.on('close', () => {
-	console.log('Server Closed!!');
+	console.log('Server not Listening anymore');
 })
 
 //Closing server in 30 secs
