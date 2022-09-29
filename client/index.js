@@ -27,7 +27,7 @@ rl.setPrompt(prompt_text);
 
 client.on('open', () => {
 	console.log('Connected To Server!');
-	console.log('--Write "exit" to quit--');
+	console.log('--Write !exit" to quit, !help for a list of commands--');
 });
 
 client.on('error', (e) => {
