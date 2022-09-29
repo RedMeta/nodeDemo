@@ -69,7 +69,7 @@ wss.on('connection', (ws, req) => {
 		console.log(`${ws.name}: ${message}`);
 	});
 	ws.on('close', () => {
-		console.log(`Closed Connection with: ${ws.name} !`);
+		console.log(`Closed Connection with: ${ws.name}`);
 		delete active_users[ws.name];
 	});
 	ws.on('error', (err) => {
