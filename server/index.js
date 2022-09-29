@@ -18,48 +18,58 @@ wss.on('connection', (ws, req) => {
 	});
 
 	console.log('Client ' + ws.name + ' connected!');
-	ws.send(`Hello ${ws.name} !`);
-	ws.on('message', (message) => {
-		if (message[0] == 47){
-			let command = message.toString().slice(1);
-			if (command.startsWith('pm')){
-				command = command.substring(2).trim();
-				let target_user = command.substring(0, command.indexOf(':'));
-				if (target_user.length > 0){
+	ws.send(`Welcome on the WSS server: ${ws.name}`);
+	ws.on('message', (raw_message) => {
+		var message = raw_message.toString();
+		if (raw_message[0] == 47){
+			let message = raw_message.toString().substring(1);
+			let command = message.replace(/ .*/,'');
+			switch (command){
+				case ('users'): {
+					ws.send(`Currently connected: ${Object.keys(active_users).join(' | ')}`);
+					break;
+				}
+				case ('pm'): {
+					message = message.substring(2).trim();
+					let target_user = message.replace(/ .*/,'');
 					if (target_user in active_users){
-						let message = command.substring(command.indexOf(':') + 1).trim();
-						active_users[target_user].send(`${ws.name} told you: ${message}`);
+						message = message.replace(target_user, '').trim();
+						active_users[target_user].send(`${ws.name} told you: "${message}"`);
 					}
-					else
-					ws.send("No username with that Nickname");
+					else {
+						ws.send(`No username with Nickname: ${target_user}`);
+					}
+					break;
 				}
-				else {
-					ws.send("No Nick provided!!");
+				case ('kill'): {
+					if (ws.name == 'admin') {
+						console.log('ADMIN KILLED ME!!');
+						wss.clients.forEach( (client) => {
+							client.close();
+						});
+						wss.close();
+					}
+					else {
+						ws.send("You can't do that bruh!!!")
+					}
+					break;
+				}
+				default: {
+					ws.send('Invalid Command Sent!!');
 				}
 			}
-			else {
-				ws.send('Invalid Command Sent!!');
-			}
-		}
-		else if (ws.name == 'admin' && message == 'DIE'){
-			console.log('ADMIN TOLD ME TO DIE!!');
-			shutting = true;
-			wss.clients.forEach( (client) => {
-				client.close();
-			});
-			wss.close();
 		}
 		else {
 			wss.clients.forEach((client) => {
 				if (client.name != ws.name){
-					client.send(`${ws.name} said: ${message}`);
+					client.send(`${ws.name} said: "${message}"`);
 				}
 			});
 		}
 		console.log(`${ws.name}: ${message}`);
 	});
 	ws.on('close', () => {
-		console.log(`${ws.name} Closed Connection!`);
+		console.log(`Closed Connection with: ${ws.name} !`);
 		delete active_users[ws.name];
 	});
 	ws.on('error', (err) => {
@@ -70,6 +80,3 @@ wss.on('connection', (ws, req) => {
 wss.on('close', () => {
 	console.log('Server not Listening anymore');
 })
-
-//Closing server in 30 secs
-

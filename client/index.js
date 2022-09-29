@@ -44,6 +44,8 @@ client.on('message', (mess) => {
 });
 
 client.on('close', () => {
+	rl.setPrompt('');
+	rl.prompt();
 	console.log("Closed conn.");
 	rl.close();
 });
@@ -57,14 +59,17 @@ rl.on('line', (line) => {
 	if (line.startsWith('!')){
 		rl.setPrompt('');
 		rl.prompt();
-		switch (line.substring(1)){
+		line = line.substring(1).replace(/ .*/,'');
+		switch (line){
 			case ('exit'): {
-				console.log('\nBye Bye!!');
+				console.log('Bye Bye!!');
 				client.close();
 				break;
 			}
 			case ('help'): {
-				console.log('Use !exit to close client, to send private messages syntax is: /pm <username>: "your message"');
+				console.log(`Use !exit to close client` +
+				`\nTo send private messages syntax is: /pm <username> <your message>` +
+				`\nTo know connected clients use /users`);
 				break;
 			}
 			default: {
@@ -78,23 +83,3 @@ rl.on('line', (line) => {
 		client.send(line);
 	}
 })
-
-//ADD LITTLE EVENT LOOP TO CONSENT CLIENT-LIKE USAGE
-
-// if (client.readyState != client.OPEN)
-// {
-//	 console.log('No server!!');
-//	 process.exit();
-// }
-// while (1)
-// {
-//	 let inp = readline(">");
-//	 if (inp == 'exit') {
-//	 client.close(200);
-//	 console.log('You logged out!!');
-//	 process.exit();
-//	 }
-//	 else if (inp.length > 1) {
-//		 client.send(inp);
-//	 }
-// }
