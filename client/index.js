@@ -9,14 +9,19 @@ const rl = readline.createInterface({
 	terminal: true
 });
 
-const name = sync_read({ask: 'Insert your nickname here!'});
+const name = sync_read({ask: 'Insert your nickname here:  '});
+
 if (name.length == 0){
 	console.log('Restart with a valid name!!');
 	process.exit(1);
 }
 
+
+const prompt_text = `${name}>`;
 const url = 'ws://localhost:8080?id=' + name;
-const client = new WebSocket(url)
+const client = new WebSocket(url);
+
+rl.setPrompt(prompt_text);
 
 //Web socket Callbacks setting
 
@@ -31,32 +36,48 @@ client.on('error', (e) => {
 });
 
 client.on('message', (mess) => {
-	console.log('SERVER SAID ===>	' + mess)
+	rl.setPrompt('');
+	rl.prompt();
+	console.log(mess.toString());
+	rl.setPrompt(prompt_text);
+	rl.prompt();
 });
 
 client.on('close', () => {
-	console.log("Server closed conn.");
-	process.exit();
+	console.log("Closed conn.");
+	rl.close();
 });
-
 
 //Terminal input control
-rl.setPrompt('>');
+rl.setPrompt(prompt_text);
 rl.on('line', (line) => {
+	rl.setPrompt(prompt_text);
+	rl.prompt();
 	line = line.trim().toString();
-	console.log(line);
-	if ( line.length > 0 && client.readyState == client.OPEN && line != "exit"){
+	if (line.startsWith('!')){
+		rl.setPrompt('');
+		rl.prompt();
+		switch (line.substring(1)){
+			case ('exit'): {
+				console.log('\nBye Bye!!');
+				client.close();
+				break;
+			}
+			case ('help'): {
+				console.log('Use !exit to close client, to send private messages syntax is: /pm <username>: "your message"');
+				break;
+			}
+			default: {
+				console.log('Wrong Command, Use !help for info');
+			}
+		}
+		rl.setPrompt(prompt_text);
+		rl.prompt();
+	}
+	else if ( line.length > 0 ){
 		client.send(line);
 	}
-	else if (line == 'exit')
-		rl.close();
-	//if (client.readyState == client.OPEN)
 })
-
-rl.on('close', () => {
-	console.log('\nBye Bye!!');
-	process.exit();
-});
 
 //ADD LITTLE EVENT LOOP TO CONSENT CLIENT-LIKE USAGE
 
