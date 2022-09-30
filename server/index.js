@@ -5,28 +5,33 @@ const wss = new WebSocketServer({ port: 8080})
 var active_users = {};
 
 console.log('Server started on port 8080');
+
+//WSS handlers
+
 wss.on('connection', (ws, req) => {
 	const params = url.parse(req.url, true);
-	ws.name = params.query.id;
+	ws.name = params.query.id.toString().trim();
 	ws.uid = uuid_v4();
-	active_users[ws.name] = ws;
-	wss.clients.forEach( (client) => {
-		if (ws.name == client.name && ws.uid != client.uid){
-			ws.send('Name already taken, try with a new one!!');
-			ws.close();
-		}
-	});
+	if (ws.name in active_users) {
+		console.log('Name already taken, kicking out last' ,ws.name.toString());
+		ws.send('Name already taken, try with a new one!!');
+		ws.close();
+	}
+	else {
+		active_users[ws.name] = ws;
+		console.log('Client ' + ws.name + ' connected!');
+		ws.send('Welcome on the WSS server: ', ws.name);
+	}
 
-	console.log('Client ' + ws.name + ' connected!');
-	ws.send(`Welcome on the WSS server: ${ws.name}`);
 	ws.on('message', (raw_message) => {
 		var message = raw_message.toString();
+		//Command flow (start with '/')
 		if (raw_message[0] == 47){
 			let message = raw_message.toString().substring(1);
 			let command = message.replace(/ .*/,'');
 			switch (command){
 				case ('users'): {
-					ws.send(`Currently connected: ${Object.keys(active_users).join(' | ')}`);
+					ws.send('Currently connected: ' + Object.keys(active_users).join(' | '));
 					break;
 				}
 				case ('pm'): {
@@ -59,21 +64,25 @@ wss.on('connection', (ws, req) => {
 				}
 			}
 		}
+		//Group Messages
 		else {
 			wss.clients.forEach((client) => {
-				if (client.name != ws.name){
+				if (client.name != ws.name)
 					client.send(`${ws.name} said: "${message}"`);
-				}
+				else
+					client.send(`You sent: "${message}"`);
 			});
+			console.log(ws.name, ':', message);
 		}
-		console.log(`${ws.name}: ${message}`);
 	});
+
 	ws.on('close', () => {
 		console.log(`Closed Connection with: ${ws.name}`);
 		delete active_users[ws.name];
 	});
+
 	ws.on('error', (err) => {
-	console.log(`WebSocket Error: ${err.message.toString()}`)
+		console.log(`WebSocket Error: ${err.message.toString()}`)
 	})
 });
 
