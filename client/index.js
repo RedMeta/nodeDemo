@@ -9,16 +9,26 @@ const rl = readline.createInterface({
 	terminal: true
 });
 
-const name = sync_read({ask: 'Insert your nickname here:  '});
+const name = sync_read({ask: 'Insert your nickname here> '});
 
+//Name validity check
 if (name.length == 0){
-	console.log('Restart with a valid name!!');
+	console.log('Insert a valid name!!');
 	process.exit(1);
 }
 
+let ask_url = sync_read({ask: 'Insert server ip, default(localhost): '});
+let ask_port = sync_read({ask: 'Insert conn port, default(8080): '});
+
+if (ask_url.trim().length == 0) {
+	ask_url = 'localhost';
+}
+if (ask_port.trim().length == 0) {
+	ask_port = '8080';
+}
 
 const prompt_text = `${name}>`;
-const url = 'ws://localhost:8080?id=' + name;
+const url = `ws://${ask_url}:${ask_port}?id=${name}`;
 const client = new WebSocket(url);
 
 rl.setPrompt(prompt_text);
