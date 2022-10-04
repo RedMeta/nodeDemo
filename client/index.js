@@ -9,7 +9,6 @@ const rl = readline.createInterface({
 	terminal: true
 });
 
-
 const name = sync_read({ask: 'Insert your nickname here> '});
 //Name validity check
 if (name.length == 0){
@@ -20,7 +19,7 @@ if (name.length == 0){
 const ask_url = sync_read({ask: 'Insert server ip, default(localhost): '}) || 'localhost';
 const ask_port = sync_read({ask: 'Insert conn port, default(8080): '}) || '8080';
 
-const prompt_text = `${name}>`;
+const prompt_text = name + '>';
 const url = `ws://${ask_url}:${ask_port}?id=${name}`;
 const client = new WebSocket(url);
 
@@ -32,7 +31,7 @@ client.on('open', () => {
 });
 
 client.on('error', (e) => {
-	console.log(`WebSocket error: `, e);
+	console.log('WebSocket error:', e);
 	process.exit();
 });
 
@@ -47,7 +46,7 @@ client.on('message', (mess) => {
 client.on('close', () => {
 	rl.setPrompt('');
 	rl.prompt();
-	console.log("Closed conn.");
+	console.log('Closed conn.');
 	rl.close();
 	process.exit();
 });
@@ -68,9 +67,9 @@ rl.on('line', (line) => {
 				break;
 			}
 			case ('help'): {
-				console.log(`Use !exit to close client`,
-				`\nTo send private messages syntax is: /pm <username> <your message>`,
-				`\nTo know connected clients use /users`);
+				console.log('##Use !exit to close client',
+				'\n##To send private messages syntax is: /pm <username> <your message>',
+				'\n##To know connected clients use /users');
 				break;
 			}
 			default: {
@@ -83,4 +82,9 @@ rl.on('line', (line) => {
 	else if ( line.length > 0 ){
 		client.send(line);
 	}
-})
+});
+
+rl.on('close', () => {
+	client.close();
+	process.exit();
+});

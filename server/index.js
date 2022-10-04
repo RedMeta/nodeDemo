@@ -1,7 +1,7 @@
 const WebSocketServer = require('ws').Server
 const url = require('url');
 const uuid_v4 = require('uuid').v4;
-const wss = new WebSocketServer({ port: 8080})
+const wss = new WebSocketServer({ port: 8080 })
 var active_users = {};
 
 console.log('Server started on port 8080');
@@ -46,7 +46,7 @@ wss.on('connection', (ws, req) => {
 						active_users[target_user].send(ws.name + ' wrote to you: ' + message);
 					}
 					else {
-						ws.send(`No username with Nickname: ${target_user}`);
+						ws.send("No username with Nickname: " + target_user);
 					}
 					break;
 				}
@@ -72,9 +72,9 @@ wss.on('connection', (ws, req) => {
 		else {
 			wss.clients.forEach((client) => {
 				if (client.name != ws.name)
-					client.send(`${ws.name} said: "${message}"`);
+					client.send(ws.name, "said:", message);
 				else
-					client.send(`You sent: "${message}"`);
+					client.send("You sent:", message);
 			});
 			console.log(ws.name, ':', message);
 		}
