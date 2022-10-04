@@ -16,7 +16,6 @@ if (name.length == 0){
 	process.exit(1);
 }
 
-//Only 2
 const ask_url = sync_read({ask: 'Insert server ip, default(localhost): '}) || 'localhost';
 const ask_port = sync_read({ask: 'Insert conn port, default(8080): '}) || '8080';
 
