@@ -13,13 +13,15 @@ wss.on('connection', (ws, req) => {
 	ws.name = params.query.id.toString().trim();
 	ws.uid = uuid_v4();
 	if (ws.name in active_users) {
-		console.log('Name already taken, kicking out last' ,ws.name.toString());
+		console.log('Name already taken, kicking out last', ws.name.toString());
 		ws.send('Name already taken, try with a new one!!');
+		ws.name = ws.name + ' | ' + ws.uid;
+		active_users[ws.name] = ws.name;
 		ws.close();
 	}
 	else {
+		console.log('Client', ws.name, 'connected!');
 		active_users[ws.name] = ws;
-		console.log('Client ' + ws.name + ' connected!');
 		ws.send('Welcome on the WSS server: ', ws.name);
 	}
 
@@ -29,6 +31,7 @@ wss.on('connection', (ws, req) => {
 		if (raw_message[0] == 47){
 			let message = raw_message.toString().substring(1);
 			let command = message.replace(/ .*/,'');
+			//Small Server Side Command Implementation
 			switch (command){
 				case ('users'): {
 					ws.send('Currently connected: ' + Object.keys(active_users).join(' | '));
@@ -38,8 +41,9 @@ wss.on('connection', (ws, req) => {
 					message = message.substring(2).trim();
 					let target_user = message.replace(/ .*/,'');
 					if (target_user in active_users){
-						message = message.replace(target_user, '').trim();
-						active_users[target_user].send(`${ws.name} told you: "${message}"`);
+						message = message.substring(target_user.length).trim();
+						console.log(ws.name, 'wrote to', target_user + ':', message);
+						active_users[target_user].send(ws.name + ' wrote to you: ' + message);
 					}
 					else {
 						ws.send(`No username with Nickname: ${target_user}`);
@@ -55,7 +59,7 @@ wss.on('connection', (ws, req) => {
 						wss.close();
 					}
 					else {
-						ws.send("You can't do that bruh!!!")
+						ws.send("You can't do that!!")
 					}
 					break;
 				}
@@ -77,12 +81,12 @@ wss.on('connection', (ws, req) => {
 	});
 
 	ws.on('close', () => {
-		console.log(`Closed Connection with: ${ws.name}`);
+		console.log('Closed Connection with:', ws.name);
 		delete active_users[ws.name];
 	});
 
 	ws.on('error', (err) => {
-		console.log(`WebSocket Error: ${err.message.toString()}`)
+		console.log('WebSocket Error:', err.message.toString())
 	})
 });
 

@@ -49,6 +49,7 @@ client.on('close', () => {
 	rl.prompt();
 	console.log("Closed conn.");
 	rl.close();
+	process.exit();
 });
 
 //Terminal input control
