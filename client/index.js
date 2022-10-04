@@ -16,6 +16,7 @@ if (name.length == 0){
 	process.exit(1);
 }
 
+//Only 2
 const ask_url = sync_read({ask: 'Insert server ip, default(localhost): '}) || 'localhost';
 const ask_port = sync_read({ask: 'Insert conn port, default(8080): '}) || '8080';
 
@@ -24,8 +25,8 @@ const url = `ws://${ask_url}:${ask_port}?id=${name}`;
 const client = new WebSocket(url);
 
 rl.setPrompt(prompt_text);
-//Web socket handlers
 
+//Web socket handlers
 client.on('open', () => {
 	console.log('--Write !exit" to quit, !help for a list of commands--');
 });
@@ -56,6 +57,7 @@ rl.on('line', (line) => {
 	rl.setPrompt(prompt_text);
 	rl.prompt();
 	line = line.trim().toString();
+	//Check if is a Client Side Command
 	if (line.startsWith('!')){
 		rl.setPrompt('');
 		rl.prompt();
@@ -79,7 +81,7 @@ rl.on('line', (line) => {
 		rl.setPrompt(prompt_text);
 		rl.prompt();
 	}
-	else if ( line.length > 0 ){
+	else if (line.length > 0){
 		client.send(line);
 	}
 });
