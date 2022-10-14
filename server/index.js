@@ -1,16 +1,16 @@
 const WebSocketServer = require('ws').Server
 const url = require('url');
 const uuid_v4 = require('uuid').v4;
-const wss = new WebSocketServer({ port: 8080 })
+const wss = new WebSocketServer({ port: 8008 })
 var active_users = {};
 
-console.log('Server started on port 8080');
+console.log('Server started on port 8008');
 
 //WSS handlers
 
 wss.on('connection', (ws, req) => {
 	const params = url.parse(req.url, true);
-	ws.name = params.query.id.toString().trim();
+	ws.name = params.query.id.trim();
 	ws.uid = uuid_v4();
 	if (ws.name in active_users) {
 		console.log('Name already taken, kicking out last', ws.name.toString());

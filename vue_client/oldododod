@@ -1,4 +1,4 @@
-const WebSocket = require('ws');
+const WebSocket = require("ws");
 const sync_read = require('prompt-sync')({sigint: true});
 const readline = require('readline');
 const { stdin, stdout } = require('process');
@@ -17,7 +17,7 @@ if (name.length == 0){
 }
 
 const ask_url = sync_read({ask: 'Insert server ip, default(localhost): '}) || 'localhost';
-const ask_port = sync_read({ask: 'Insert conn port, default(8008): '}) || '8008';
+const ask_port = sync_read({ask: 'Insert conn port, default(8080): '}) || '8080';
 
 const prompt_text = name + '>';
 const url = `ws://${ask_url}:${ask_port}?id=${name}`;
