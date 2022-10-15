@@ -35,10 +35,10 @@ client.on('error', (e) => {
 	process.exit();
 });
 
-client.on('message', (mess) => {
+client.on('message', (obj) => {
 	rl.setPrompt('');
 	rl.prompt();
-	console.log(mess.toString());
+	console.log(JSON.parse(obj).msg);
 	rl.setPrompt(prompt_text);
 	rl.prompt();
 });
@@ -81,7 +81,10 @@ rl.on('line', (line) => {
 		rl.prompt();
 	}
 	else if (line.length > 0){
-		client.send(line);
+		client.send(JSON.stringify({
+			type: 'msg',
+			msg: line,
+		}));
 	}
 });
 

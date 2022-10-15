@@ -14,7 +14,10 @@ wss.on('connection', (ws, req) => {
 	ws.uid = uuid_v4();
 	if (ws.name in active_users) {
 		console.log('Name already taken, kicking out last', ws.name.toString());
-		ws.send('Name already taken, try with a new one!!');
+		ws.send(JSON.stringify({
+			type: 'msg',
+			msg: 'Name already taken, try with a new one!!'
+			}));
 		ws.name = ws.name + ' | ' + ws.uid;
 		active_users[ws.name] = ws.name;
 		ws.close();
@@ -22,19 +25,26 @@ wss.on('connection', (ws, req) => {
 	else {
 		console.log('Client', ws.name, 'connected!');
 		active_users[ws.name] = ws;
-		ws.send('Welcome on the WSS server: ' + ws.name);
-	}
+		ws.send(JSON.stringify({
+			type: 'msg',
+			msg: 'Welcome on the WSS server: ' + ws.name + '\nWrite !help for a list of commands'
+			}));
+		}
 
-	ws.on('message', (raw_message) => {
-		var message = raw_message.toString().trim();
+	ws.on('message', (obj) => {
+		let raw_message = JSON.parse(obj).msg.toString().trim();
+		let message = raw_message;
 		//Command flow (start with '/')
-		if (raw_message[0] == 47){
-			let message = raw_message.toString().substring(1);
+		if (raw_message.startsWith('/')) {
+			let message = raw_message.substring(1);
 			let command = message.replace(/ .*/,'');
 			//Small Server Side Command Implementation
 			switch (command){
 				case ('users'): {
-					ws.send('Currently connected: ' + Object.keys(active_users).join(' | '));
+					ws.send(JSON.stringify({
+						type: 'msg',
+						msg: 'Currently connected: ' + Object.keys(active_users).join(' | ')
+						}));
 					break;
 				}
 				case ('pm'): {
@@ -43,10 +53,16 @@ wss.on('connection', (ws, req) => {
 					if (target_user in active_users){
 						message = message.substring(target_user.length).trim();
 						console.log(ws.name, 'wrote to', target_user + ':', message);
-						active_users[target_user].send(ws.name + ' wrote to you: ' + message);
+						active_users[target_user].send(JSON.stringify({
+							type: 'msg',
+							msg: ws.name + ' wrote to you: ' + message
+							}));
 					}
 					else {
-						ws.send("No username with Nickname: " + target_user);
+						ws.send(JSON.stringify({
+							type: 'msg',
+							msg: "No username with Nickname: " + target_user
+							}));
 					}
 					break;
 				}
@@ -59,12 +75,33 @@ wss.on('connection', (ws, req) => {
 						wss.close();
 					}
 					else {
-						ws.send("You can't do that!!")
+						ws.send(JSON.stringify({
+							type: 'msg',
+							msg: "You can't do that!!"
+							}));
 					}
 					break;
 				}
+				case ('close'): {
+					ws.send(JSON.stringify({
+						type: 'msg',
+						msg: "Goodbye " + ws.name,
+						}));
+					ws.close();
+					break;
+				}
+				case ('help'): {
+					ws.send(JSON.stringify({
+						type: 'msg',
+						msg: "Available commands: /help, /users, /pm <user> message, /close"
+						}));
+					break;
+				}
 				default: {
-					ws.send('Invalid Command Sent!!');
+					ws.send(JSON.stringify({
+						type: 'msg',
+						msg: 'Invalid Command Sent!!'
+						}));
 				}
 			}
 		}
@@ -72,11 +109,17 @@ wss.on('connection', (ws, req) => {
 		else if (message){
 			wss.clients.forEach((client) => {
 				if (client.name != ws.name)
-					client.send(ws.name + " said: " + message);
+					client.send(JSON.stringify({
+						type: 'msg',
+						msg: ws.name + " said: " + message
+						}));
 				else
-					client.send("You sent: " + message);
+					client.send(JSON.stringify({
+						type: 'msg',
+						msg: "You sent: " + message
+						}));
 			});
-			console.log(ws.name, ':', message);
+			console.log(ws.name + ':', message);
 		}
 	});
 

@@ -4,41 +4,57 @@
 		<!-- Display username and url in use, also put connection and error status -->
 		<div class="float-container">
 			<div class="float-child">
-				Your Nickname: {{ nick }}
-				<input type="text" v-model.lazy="nick" placeholder="Max 10 chars" />
+				Your Nickname: {{ nick }} <br />
+				<input
+					v-if="!this.connected"
+					type="text"
+					v-model.lazy="nick"
+					placeholder="Max 10 chars"
+				/>
 			</div>
 			<div class="float-child">
-				Address:
-				<input type="text" v-model="address" placeholder="localhost:8008" />
+				Address: {{ address }} <br />
+				<input
+					v-if="!connected"
+					type="text"
+					@change="updtAddress"
+					placeholder="localhost:8008"
+				/>
 			</div>
 			<div class="float-child">Connection status: {{ connected }}</div>
 			<div class="float-child">
-				Error: {{ errObj.conn_err }}
+				Error: {{ errObj.conn_err }} <br />
 				<!-- If there are errors, show a button to expand a box with the error message -->
 				<button
-					v-if="errObj.connected"
+					v-if="errObj.conn_err"
 					v-on:click="errObj.showError = !errObj.showError"
 				>
-					Show error
+					{{ errObj.showError ? "Hide" : "Show" }} error
 				</button>
 				<div v-if="errObj.showError">
-					{{ errObj.error.data }}
+					{{ errObj.error }}
 				</div>
 			</div>
 		</div>
-		<!-- Display manual connect Button -->
-		<button v-if="!errObj.connected" v-on:click="connect">Connect</button>
+		<!-- Display button to connect/disconnect from ws -->
+		<button v-if="!connected" v-on:click="connect">Connect</button>
+		<button v-if="connected" v-on:click="disconnect">Disconnect</button>
 	</div>
 	<!-- Display a chat message section -->
 	<div>
 		<h2>Chat</h2>
 		<!-- Display all messages with scroll list -->
-		<div ref="chat" style="overflow-y: scroll; height: 200px; s">
+		<div ref="chat" id="chat_sec">
 			<div v-for="message in messages" :key="message.id">
-				<p>{{ message.id }}: {{ message.msg }}</p>
+				<p>{{ message.id ? message.id + ":" : "" }} {{ message.msg }}</p>
 			</div>
 		</div>
-		<input type="text" v-model="message" v-on:keyup.enter="send" />
+		<input
+			type="text"
+			v-model="message"
+			v-on:keyup.enter="send"
+			placeholder="Message or /command"
+		/>
 		<!-- Display a input text field for sending messages -->
 	</div>
 </template>
@@ -58,7 +74,7 @@ export default {
 			errObj: {
 				conn_err: false,
 				showError: false,
-				error: null,
+				error: "",
 			},
 			//Websocket object
 			ws: null,
@@ -70,18 +86,14 @@ export default {
 	},
 	created() {},
 	mounted() {
-		// 	this.address =
-		// 		prompt("Enter the server address (default localhost)") || "localhost";
-		// 	this.address +=
-		// 		":" + (prompt("Enter the server port (default 8008)") || "8008");
-		// 	this.url += this.address + "?id=" + this.nick;
+		//Set the url to the address in the input field
+		this.url += this.address;
 	},
 	methods: {
 		connect() {
 			//Validate input
 			this.nick = this.nick.trim();
-			this.address = this.address.trim();
-			this.url += this.address + "?id=" + this.nick;
+			this.url = "ws://" + this.address + "?id=" + this.nick;
 			//Set allSet to true if all is ok
 			if (
 				this.nick.length > 0 &&
@@ -92,10 +104,7 @@ export default {
 			} else {
 				this.allSet = false;
 				this.errObj.conn_err = true;
-				this.errObj.error = {
-					data: "Invalid input",
-				};
-				return;
+				this.errObj.error = "Invalid Name or Address";
 			}
 			//Connect to the server
 			if (this.allSet) {
@@ -105,12 +114,12 @@ export default {
 					this.ws.onmessage = this.onMessage;
 					this.ws.onclose = this.onClose;
 					this.ws.onerror = this.onError;
-				} catch (e) {
+				} catch (error) {
 					this.errObj.conn_err = true;
-					this.errObj.error = e;
+					this.errObj.error = error.data;
 				}
 			} else {
-				alert("Please set a nickname and address");
+				alert("Please set a valid nickname and address");
 			}
 		},
 		//Disconnect from server
@@ -128,7 +137,7 @@ export default {
 		onMessage(m) {
 			this.messages.push({
 				id: this.id++,
-				msg: m.data.toString(),
+				msg: JSON.parse(m.data).mess,
 			});
 		},
 		onOpen() {
@@ -141,8 +150,18 @@ export default {
 		},
 		onError() {
 			this.errObj.conn_err = true;
+			this.errObj.error = "Error connecting to " + this.address;
 			this.connected = false;
 			console.log("Error connecting to " + this.address);
+		},
+		//Var Updates
+		updtAddress(e) {
+			let newAdr = e.target.value.toString().trim();
+			if (newAdr == "" || newAdr == this.address)
+				this.address = "localhost:8008";
+			else this.address = newAdr;
+
+			this.url = "ws://" + this.address;
 		},
 	},
 	watch: {
@@ -158,20 +177,27 @@ export default {
 		},
 		connected: {
 			handler() {
-				if (this.connected) this.errObj.conn_err = false;
+				if (this.connected) {
+					this.errObj.showError = false;
+					this.errObj.conn_err = false;
+					this.errObj.error = null;
+				}
 			},
 		},
 	},
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style>
 #topMenu {
 	background-color: #f1f1f1;
 	padding: 5px;
 	text-align: center;
 	height: auto;
+}
+#chat_sec {
+	height: 250px;
+	overflow-y: scroll;
 }
 .float-container {
 	display: flex;
