@@ -13,13 +13,13 @@
 	<div>
 		<h2>Chat</h2>
 		<!-- Display all messages with scroll list -->
-		<div id="chat">
+		<div ref="chat" style="overflow-y: scroll; height: 200px; s">
 			<div v-for="message in messages" :key="message.id">
 				<p>{{ message.id }}: {{ message.msg }}</p>
 			</div>
 		</div>
-		<!-- Display a input text field for sending messages -->
 		<input type="text" v-model="message" v-on:keyup.enter="send" />
+		<!-- Display a input text field for sending messages -->
 	</div>
 </template>
 
@@ -89,6 +89,17 @@ export default {
 		onError() {
 			this.error = true;
 			console.log("Error connecting to " + this.address);
+		},
+	},
+	watch: {
+		messages: {
+			handler() {
+				const container = this.$refs.chat;
+				this.$nextTick(() => {
+					container.scrollTop = container.scrollHeight;
+				});
+			},
+			deep: true,
 		},
 	},
 };
