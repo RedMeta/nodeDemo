@@ -9,10 +9,10 @@ const rl = readline.createInterface({
 	terminal: true
 });
 
-const name = sync_read({ask: 'Insert your nickname here> '});
+const name = sync_read({ask: 'Insert your nickname here (max 10 char)> '});
 //Name validity check
-if (name.length == 0){
-	console.log('Insert a valid name!!');
+if (name.length == 0 || name.length > 10){
+	console.log('Insert a valid name!');
 	process.exit(1);
 }
 

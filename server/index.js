@@ -26,7 +26,7 @@ wss.on('connection', (ws, req) => {
 	}
 
 	ws.on('message', (raw_message) => {
-		var message = raw_message.toString();
+		var message = raw_message.toString().trim();
 		//Command flow (start with '/')
 		if (raw_message[0] == 47){
 			let message = raw_message.toString().substring(1);
@@ -68,8 +68,8 @@ wss.on('connection', (ws, req) => {
 				}
 			}
 		}
-		//Group Messages
-		else {
+		//If not a command, group message instead
+		else if (message){
 			wss.clients.forEach((client) => {
 				if (client.name != ws.name)
 					client.send(ws.name + " said: " + message);
