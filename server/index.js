@@ -22,7 +22,7 @@ wss.on('connection', (ws, req) => {
 	else {
 		console.log('Client', ws.name, 'connected!');
 		active_users[ws.name] = ws;
-		ws.send('Welcome on the WSS server: ', ws.name);
+		ws.send('Welcome on the WSS server: ' + ws.name);
 	}
 
 	ws.on('message', (raw_message) => {
@@ -72,9 +72,9 @@ wss.on('connection', (ws, req) => {
 		else {
 			wss.clients.forEach((client) => {
 				if (client.name != ws.name)
-					client.send(ws.name, "said:", message);
+					client.send(ws.name + " said: " + message);
 				else
-					client.send("You sent:", message);
+					client.send("You sent: " + message);
 			});
 			console.log(ws.name, ':', message);
 		}
