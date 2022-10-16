@@ -130,14 +130,19 @@ export default {
 		send() {
 			if (!this.connected) return alert("You are not connected to the server!");
 			else if (this.message) {
-				this.ws.send(this.message);
+				this.ws.send(
+					JSON.stringify({
+						type: "msg",
+						msg: this.message,
+					})
+				);
 				this.message = "";
 			}
 		},
 		onMessage(m) {
 			this.messages.push({
 				id: this.id++,
-				msg: JSON.parse(m.data).mess,
+				msg: JSON.parse(m.data).msg,
 			});
 		},
 		onOpen() {

@@ -27,12 +27,12 @@ wss.on('connection', (ws, req) => {
 		active_users[ws.name] = ws;
 		ws.send(JSON.stringify({
 			type: 'msg',
-			msg: 'Welcome on the WSS server: ' + ws.name + '\nWrite !help for a list of commands'
+			msg: 'Welcome on the WSS server: ' + ws.name + '. Write /help commands'
 			}));
 		}
 
 	ws.on('message', (obj) => {
-		let raw_message = JSON.parse(obj).msg.toString().trim();
+		let raw_message = (JSON.parse(obj)).msg.trim();
 		let message = raw_message;
 		//Command flow (start with '/')
 		if (raw_message.startsWith('/')) {
