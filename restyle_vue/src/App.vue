@@ -42,7 +42,7 @@
 								class="message-data"
 								:class="{ 'align-right': msg.u_id == 0 }"
 							>
-								<span class="message-data-name">{{ msg.nick }}</span>
+								{{ msg.u_id == 0 ? "Me" : msg.nick }}
 							</div>
 							<div
 								class="message"
@@ -55,6 +55,10 @@
 							</div>
 						</li>
 					</ul>
+				</div>
+				<div class="chat-message clearfix">
+					<input type="text" alt="Message" />
+					<button @click="send">Send</button>
 				</div>
 			</div>
 		</div>
