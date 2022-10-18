@@ -1,8 +1,10 @@
 const WebSocketServer = require('ws').Server
 const url = require('url');
-const uuid_v4 = require('uuid').v4;
 const wss = new WebSocketServer({ port: 8008 })
 var active_users = {};
+//0 reserved for server messages
+var users_id = 1;
+var mess_id = 0;
 
 console.log('Server started on port 8008');
 
@@ -11,14 +13,15 @@ console.log('Server started on port 8008');
 wss.on('connection', (ws, req) => {
 	const params = url.parse(req.url, true);
 	ws.name = params.query.id.trim();
-	ws.uid = uuid_v4();
+	ws.uid = users_id++;
 	if (ws.name in active_users) {
 		console.log('Name already taken, kicking out last', ws.name.toString());
 		ws.send(JSON.stringify({
-			type: 'msg',
-			msg: 'Name already taken, try with a new one!!'
+			type: 'error',
+			msg: 'Name already taken, try with a new one!!',
+			nick: "Server",
 			}));
-		ws.name = ws.name + ' | ' + ws.uid;
+		ws.name = ws.name + ws.uid;
 		active_users[ws.name] = ws.name;
 		ws.close();
 	}
@@ -27,7 +30,8 @@ wss.on('connection', (ws, req) => {
 		active_users[ws.name] = ws;
 		ws.send(JSON.stringify({
 			type: 'msg',
-			msg: 'Welcome on the WSS server: ' + ws.name + '. Write /help commands'
+			msg: 'Welcome on the WSS server: ' + ws.name + '. Write /help commands',
+			nick: 'Server',
 			}));
 		}
 
@@ -43,7 +47,8 @@ wss.on('connection', (ws, req) => {
 				case ('users'): {
 					ws.send(JSON.stringify({
 						type: 'msg',
-						msg: 'Currently connected: ' + Object.keys(active_users).join(' | ')
+						msg: 'Currently connected: ' + Object.keys(active_users).join(' | '),
+						nick: 'Server',
 						}));
 					break;
 				}
@@ -60,8 +65,9 @@ wss.on('connection', (ws, req) => {
 					}
 					else {
 						ws.send(JSON.stringify({
-							type: 'msg',
-							msg: "No username with Nickname: " + target_user
+							type: 'error',
+							msg: 'No username with Nickname: ' + target_user,
+							nick: 'Server'
 							}));
 					}
 					break;
@@ -76,31 +82,35 @@ wss.on('connection', (ws, req) => {
 					}
 					else {
 						ws.send(JSON.stringify({
-							type: 'msg',
-							msg: "You can't do that!!"
+							type: 'Error',
+							msg: 'You can\'t do that!!',
+							nick: 'Server'
 							}));
 					}
 					break;
 				}
 				case ('close'): {
 					ws.send(JSON.stringify({
-						type: 'msg',
-						msg: "Goodbye " + ws.name,
+						type: 'info',
+						msg: 'Goodbye ' + ws.name,
+						nick: 'Server'
 						}));
 					ws.close();
 					break;
 				}
 				case ('help'): {
 					ws.send(JSON.stringify({
-						type: 'msg',
-						msg: "Available commands: /help, /users, /pm <user> message, /close"
+						type: 'info',
+						msg: "Available commands: /help, /users, /pm <user> message, /close",
+						nick: 'Server',
 						}));
 					break;
 				}
 				default: {
 					ws.send(JSON.stringify({
-						type: 'msg',
-						msg: 'Invalid Command Sent!!'
+						type: 'error',
+						msg: 'Invalid Command Sent!!',
+						nick: 'Server',
 						}));
 				}
 			}
@@ -111,12 +121,14 @@ wss.on('connection', (ws, req) => {
 				if (client.name != ws.name)
 					client.send(JSON.stringify({
 						type: 'msg',
-						msg: ws.name + " said: " + message
+						msg: ws.name + " said: " + message,
+						nick: client.name,
 						}));
 				else
 					client.send(JSON.stringify({
 						type: 'msg',
-						msg: "You sent: " + message
+						msg: "You sent: " + message,
+						nick: client.name,
 						}));
 			});
 			console.log(ws.name + ':', message);
