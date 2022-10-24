@@ -38,6 +38,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	margin: 2%;
 }
 .people-list .search input {
 	width: 90%;
@@ -66,7 +67,6 @@ ul {
 	margin-right: 10px;
 }
 .people-list ul li:first-child {
-	padding-top: 0px;
 	list-style: circle;
 	border-bottom: #D8DADF 2px solid;
 }
@@ -89,8 +89,9 @@ ul {
 	padding: 10px;
 	border-bottom: 2px solid white;
 	display: flex;
+	flex-direction: row;
 	align-items: center;
-	justify-items: center;
+	justify-content: space-between;
 }
 .chat .chat-header .chat-about {
 	float: left;
@@ -134,6 +135,7 @@ ul {
 	border-radius: 7px;
 	position: relative;
 	width: fit-content;
+	min-width: 50px;
 	overflow-wrap: anywhere;
 }
 .chat .chat-history .message::after {
@@ -149,6 +151,7 @@ ul {
 .chat .chat-history .my-message {
 	background: #86BB71;
 	align-self: end;
+	text-align: right;
 	margin-left: 100px;
 }
 .chat .chat-history .my-message:after {
@@ -175,7 +178,7 @@ ul {
 	align-items: center;
 	display: flex;
 }
-.chat li {
+.chat .chat-history li {
 	list-style: none;
 }
 .chat .chat-message input {
@@ -210,7 +213,7 @@ ul {
 	border-color: #86BB71;
 }
 
-.online, .me {
+.online, .me, .offline {
 	margin-right: 3px;
 	font-size: 10px;
 }
@@ -219,8 +222,12 @@ ul {
 	color: #86BB71;
 }
 
-.me {
+.offline {
 	color: #E38968;
+}
+
+.me {
+	color: #0ad6fa;
 }
 
 .align-left {
