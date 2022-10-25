@@ -17,7 +17,6 @@ users_list = {
 var conn_list = {};
 var messages = [];
 var users_id = 1;
-var idd = 1;
 var mess_id = 0;
 
 console.log('Server started on port 8008');
@@ -73,15 +72,29 @@ function onMessage(data) {
 		};
 	//Private message
 		case 'pm': {
+			if (!obj.dest || !obj.text || obj.text.length == 0) {
+				console.log('Invalid pm from:', this.user.name);
+				break;
+			}
+			else {
+				res = {
+					type: 'pm',
+					text: obj.text,
+					user: this.user,
+					dest: obj.dest,
+				};
+				console.log('Private message from', this.user.name, 'to', obj.dest.name, ':', obj.text);
+				obj_send(this, res);
+				obj_send(conn_list[obj.dest.u_id], res);
+				break;
+			}
 			//pm logic
-			console.log('Private message from', this.user.name, 'to', obj.dest.name, ':', obj.text);
-			break;
 		};
 	//User update settings
 		case 'update': {
 			let new_setts = obj.user;
 			if (new_setts.u_id != this.user.u_id) {
-				console.log('User', this.user.name, 'tried to change settings of user', new_setts.name);
+				console.log('User', this.user.name, 'tried to change settings of user', conn_list[new_setts.u_id].user.name);
 				break;
 			}
 			if (!new_setts.name || new_setts.name.length < 1 || new_setts.name.length > 10) {
@@ -123,20 +136,14 @@ wss.on('connection', (ws, req) => {
 	users_id++;
 
 	//Send user configs back if all good
+	//Send messages history to newly connected users
 	obj_send( ws, {
 		type: 'login',
 		user: new_user,
+		users: users_list,
+		data: messages
 	});
 	//Send users list to newly connected users
-	obj_send( ws, {
-		type: 'users',
-		data: users_list,
-	});
-	//Send messages history to newly connected users
-	obj_send( ws, {
-		type: 'history',
-		data: messages,
-	});
 	//Send new user to all other users
 	broadcast({
 		type: 'update',

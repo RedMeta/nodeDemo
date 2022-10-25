@@ -8,7 +8,15 @@
 				<!-- Connected usr List with custom pins-->
 				<ul class="list">
 					<li v-for="usr of ordered_users" :key="usr.u_id">
-						<img :src="usr.icon" alt="avatar" />
+						<img
+							:src="usr.icon"
+							alt="avatar"
+							@click="
+								() => {
+									chat_id = usr.u_id;
+								}
+							"
+						/>
 						<div>
 							<div class="name">{{ usr.name }}</div>
 							<div class="status">
@@ -29,9 +37,11 @@
 				<div class="chat-header">
 					<!-- For now only groupchat, later render also pm switch -->
 					<div class="chat-about">
-						<div class="chat-with">Connected to {{ address }}</div>
+						<div class="chat-with">
+							{{ (users ?? users[chat_id].name, "CONNECT FIRST") }}
+						</div>
 						<div class="chat-num-messages">
-							already {{ messages.length }} messages
+							already {{ messages[chat_id].length }} messages
 						</div>
 						<!--<i class="fa-star"></i>-->
 					</div>
@@ -47,7 +57,7 @@
 				<div class="chat-history" ref="chat_cont">
 					<ul>
 						<!-- Display all messages with scroll list -->
-						<li v-for="msg in messages" :key="msg.m_id">
+						<li v-for="msg in messages[chat_id]" :key="msg.m_id">
 							<div
 								class="message-data"
 								:class="{ 'align-right': msg.user.u_id == client.u_id }"
@@ -67,8 +77,12 @@
 					</ul>
 				</div>
 				<div class="chat-message">
-					<input type="text" v-model="message" v-on:keyup.enter="send" />
-					<button @click="send">Send</button>
+					<input
+						type="text"
+						v-model="message"
+						v-on:keyup.enter="send(chat_id)"
+					/>
+					<button @click="send(chat_id)">Send</button>
 				</div>
 			</div>
 		</div>
@@ -96,16 +110,19 @@ export default {
 			//Messages array and message to send
 			client: {
 				name: "",
-				u_id: 0,
+				u_id: -1,
+			},
+			server: {
+				name: "Not Connected Yet!",
+				u_id: -1,
 			},
 			users: {},
 			ordered_users: [],
-			messages: [],
-			message: "",
-			local_id: {
-				u_id: 0,
-				m_id: 0,
+			messages: {
+				"-1": [],
 			},
+			message: "",
+			chat_id: -1,
 		};
 	},
 	methods: {
@@ -137,12 +154,16 @@ export default {
 					this.errObj.error = error.data;
 					this.errObj.conn_err = true;
 					this.errObj.showError = true;
-					console.error(this.errObj.error);
+					console.warn(
+						"[ PERSONAL ] While connecting caught error :",
+						this.errObj.error
+					);
 				}
 				this.ws.onopen = this.onOpen;
 				this.ws.onmessage = this.onMessage;
 				this.ws.onclose = this.onClose;
 				this.ws.onerror = this.onError;
+				this.connected = true;
 			} else {
 				alert("Please set a valid nickname and address");
 			}
@@ -153,7 +174,7 @@ export default {
 			this.ws.close();
 		},
 		//Websocket callbacks
-		send() {
+		send(dest) {
 			if (!this.connected) {
 				alert("Please connect to a server first");
 				return;
@@ -163,12 +184,15 @@ export default {
 				text: this.message,
 				user: this.client,
 			};
-			if (this.message.startsWith("/")) res.type = "command";
-			else {
+			this.message = "";
+			if (dest == this.server.u_id) {
 				res.type = "message";
+			} else {
+				res.type = "pm";
+				res.dest = this.users[dest];
 			}
 			this.ws.send(JSON.stringify(res));
-			this.message = "";
+			console.warn("[ PERSONAL ] Sent message : ", res);
 		},
 		onMessage(raw) {
 			if (!raw.data) {
@@ -177,17 +201,31 @@ export default {
 			}
 			let msg = JSON.parse(raw.data);
 			console.warn("[ MESSAGE ]", msg);
+			console.error(this.messages);
 			switch (msg.type) {
 				case "message": {
-					this.messages.push(msg);
+					this.messages[this.server.u_id].push(msg);
+					break;
+				}
+				case "pm": {
+					let dest = -1;
+					if (msg.user.u_id == this.client.u_id) {
+						dest = msg.dest.u_id;
+					} else {
+						dest = msg.user.u_id;
+					}
+					if (!this.messages[dest]) {
+						this.messages[dest] = [];
+					}
+					this.messages[dest].push(msg);
 					break;
 				}
 				case "login": {
 					this.client = msg.user;
-					break;
-				}
-				case "users": {
-					this.users = msg.data;
+					this.users = msg.users;
+					this.server = this.users[0];
+					this.messages[this.server.u_id] = msg.data;
+					this.chat_id = this.server.u_id;
 					break;
 				}
 				case "update": {
@@ -197,10 +235,6 @@ export default {
 				case "error": {
 					this.errObj.showError = true;
 					this.errObj.error = msg.text;
-					break;
-				}
-				case "history": {
-					this.messages = msg.data;
 					break;
 				}
 				default: {
@@ -245,7 +279,7 @@ export default {
 				}
 			},
 		},
-		//Update ordered_users when users is updated
+		// Update ordered_users when users is updated
 		users: {
 			handler() {
 				this.ordered_users = Object.values(this.users);
@@ -261,6 +295,14 @@ export default {
 				});
 			},
 			deep: true,
+		},
+		// If chat_id is changed and there are no messages for that chat, create an empty array
+		chat_id: {
+			handler() {
+				if (!this.messages[this.chat_id]) {
+					this.messages[this.chat_id] = [];
+				}
+			},
 		},
 	},
 };
