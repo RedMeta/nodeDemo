@@ -16,8 +16,9 @@ users_list = {
 
 var conn_list = {};
 var messages = [];
-var users_id = 10;
+var users_id = 1;
 var mess_id = 0;
+var image_id = 0;
 
 console.log('Server started on port 8008');
 
@@ -135,13 +136,14 @@ wss.on('connection', (ws, req) => {
 	let new_user = {
 		u_id: users_id,
 		name: params.query.id,
-		icon: "https://cdn-icons-png.flaticon.com/512/2202/22020" + users_id + ".png",
+		icon: "https://cdn-icons-png.flaticon.com/512/2202/220206" + image_id + ".png",
 		online: true,
 	};
 	ws.user = new_user;
 	users_list[users_id] = new_user;
 	conn_list[users_id] = ws;
 	users_id++;
+	image_id = (image_id + 1) % 10;
 
 	//Send user configs back if all good
 	//Send messages history to newly connected users

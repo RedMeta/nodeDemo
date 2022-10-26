@@ -54,6 +54,7 @@
 					<!-- Set an input field for the username and a connect button -->
 					<div v-if="!connected" class="connection_set">
 						<input type="text" placeholder="username" v-model="client.name" />
+						<input type="text" placeholder="address:port" v-model="address" />
 						<button @click="connect(client)">Connect</button>
 					</div>
 					<!-- Set an input field for the username and icon image url and a disconnect button -->
@@ -306,7 +307,7 @@ export default {
 			this.errObj.conn_err = true;
 			this.errObj.error = "Error connecting to " + this.address;
 			this.connected = false;
-			console.log("Error connecting to " + this.address);
+			this.errObj.showError = true;
 		},
 		resortUsers() {
 			if (!this.users || this.users.length == 0) return;
@@ -328,7 +329,7 @@ export default {
 			this.search_query.trim().toLowerCase();
 			if (!this.search_query || this.search_query.lenght < 1) {
 				this.resortUsers();
-				console.warn("Empty search query");
+				console.warn("[ PERSONAL ] Empty search query");
 			}
 			this.ordered_users = this.ordered_users.filter((user) => {
 				return user.name.includes(this.search_query);
