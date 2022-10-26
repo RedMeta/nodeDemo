@@ -7,7 +7,7 @@ var users_list = {};
 users_list = {
 	'0': {
 		u_id: 0,
-		name: 'Server',
+		name: 'Global RedMeta Server',
 		icon: 'https://cdn1.iconfinder.com/data/icons/icometric-devices/256/Server-128.png',
 		online: true,
 		l_id: 0,
@@ -16,7 +16,7 @@ users_list = {
 
 var conn_list = {};
 var messages = [];
-var users_id = 1;
+var users_id = 10;
 var mess_id = 0;
 
 console.log('Server started on port 8008');
@@ -49,13 +49,13 @@ function obj_send( conn, msg , c = 0) {
 //WSS handlers
 function onMessage(data) {
 	let obj = JSON.parse(data);
-	obj.text = obj.text.trim();
+	obj.text.trim();
 	let res = {
 		user: this.user,
 	};
 
 	switch (obj.type) {
-	//Group message
+		//Group message
 		case 'message': {
 			if (obj.text && obj.text.length > 0) {
 				res = {
@@ -65,6 +65,7 @@ function onMessage(data) {
 					m_id: mess_id++,
 				};
 				console.log(this.user.name, 'wrote:', obj.text);
+				messages.push(res);
 				broadcast(res);
 			}
 			else console.log('Empty message from :', this.user.name);
@@ -76,6 +77,14 @@ function onMessage(data) {
 				console.log('Invalid pm from:', this.user.name);
 				break;
 			}
+			else if (!conn_list[obj.dest.u_id]) {
+				console.warn('User not available:', obj.dest);
+				obj_send(this, {
+					type: 'error',
+					text: 'User not available',
+				});
+				break;
+			}
 			else {
 				res = {
 					type: 'pm',
@@ -84,11 +93,10 @@ function onMessage(data) {
 					dest: obj.dest,
 				};
 				console.log('Private message from', this.user.name, 'to', obj.dest.name, ':', obj.text);
-				obj_send(this, res);
 				obj_send(conn_list[obj.dest.u_id], res);
+				if (obj.dest.u_id != this.user.u_id) obj_send(this, res);
 				break;
 			}
-			//pm logic
 		};
 	//User update settings
 		case 'update': {
@@ -127,7 +135,7 @@ wss.on('connection', (ws, req) => {
 	let new_user = {
 		u_id: users_id,
 		name: params.query.id,
-		icon: "https://cdn-icons-png.flaticon.com/512/2202/220200" + users_id + ".png",
+		icon: "https://cdn-icons-png.flaticon.com/512/2202/22020" + users_id + ".png",
 		online: true,
 	};
 	ws.user = new_user;
@@ -141,8 +149,9 @@ wss.on('connection', (ws, req) => {
 		type: 'login',
 		user: new_user,
 		users: users_list,
-		data: messages
+		data: messages,
 	});
+	console.log('mess', messages);
 	//Send users list to newly connected users
 	//Send new user to all other users
 	broadcast({

@@ -33,15 +33,14 @@
 	overflow-y: auto;
 }
 .people-list .search {
-	width: 100%;
 	height: 10%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin: 2%;
+	margin: 3px 10px;
 }
 .people-list .search input {
-	width: 90%;
+	width: 100%;
 	padding: 10px;
 	border-radius: 3px;
 	border: none;
@@ -60,6 +59,14 @@ ul {
 	padding: 10px;
 	align-items: center;
 	display: flex;
+	cursor: pointer;
+	margin: 2px 2px;
+}
+.people-list ul li:hover {
+	background: #6A6C75;
+}
+.people-list ul .current {
+	background: #6A6C75;
 }
 .people-list ul img {
 	height: 45px;
@@ -96,7 +103,7 @@ ul {
 .chat .chat-header .chat-about {
 	float: left;
 	padding-left: 10px;
-	}
+}
 .chat .chat-header .chat-with {
 	font-weight: bold;
 	font-size: 16px;
@@ -207,7 +214,7 @@ ul {
 	color: #86BB71;
 	border-color: #86BB71;
 }
-.chat .chat-message button:hover {
+.chat-message button:hover, .chat-message button:focus {
 	color: #fff;
 	background-color: #86BB71;
 	border-color: #86BB71;
@@ -238,3 +245,86 @@ ul {
 	text-align: right;
 	margin-right: 5px;
 }
+
+.alert {
+	padding: 20px;
+	background-color: #f44336a6;
+	position: fixed;
+	color: rgb(255, 238, 0);
+	bottom: 0;
+	width: 20%;
+	border-radius: 6px;
+	margin: 20px 30px;
+}
+.closebtn {
+	margin-left: 15px;
+	color: white;
+	font-weight: bold;
+	float: right;
+	font-size: 22px;
+	line-height: 20px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+.closebtn:hover {
+	color: black;
+}
+.connection_set {
+	padding: 10px;
+	background-color: #434651;
+	color: white;
+	border-radius: 3px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.connection_set button {
+	margin: 5px 5px 5px 5px;
+	cursor: pointer;
+	outline: 0;
+	text-align: center;
+	background-color: transparent;
+	border: 1px solid transparent;
+	padding: 5px 12px;
+	font-size: 1rem;
+	border-radius: 0.25rem;
+	transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+	color: #86BB71;
+	border-color: #86BB71;
+}
+
+.connection_set input {
+	padding: 1%;
+	font: 16px/22px "Lato", Arial, sans-serif;
+	border-radius: 4px;
+	border: #86BB71;
+	align-self: center;
+	margin: 7px 5px 7px 1px;
+}
+.connection_set button:hover, .connection_set button:focus {
+	color: #fff;
+	background-color: #86BB71;
+	border-color: #86BB71;
+}
+.connection_set .disconnect {
+	margin: 5px 5px 5px 5px;
+	width: 120px;
+	cursor: pointer;
+	outline: 0;
+	text-align: center;
+	background-color: transparent;
+	border: 1px solid transparent;
+	padding: 5px 12px;
+	font-size: 1rem;
+	border-radius: 0.25rem;
+	transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+	color: #bb7171;
+	border-color: #bb7171;
+}
+.connection_set .disconnect:hover, .connection_set .disconnect:focus{
+	color: #fff;
+	background-color: #bb7171;
+	border-color: #bb7171;
+}
+
