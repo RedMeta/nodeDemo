@@ -11,6 +11,7 @@ users_list = {
 		icon: 'https://cdn1.iconfinder.com/data/icons/icometric-devices/256/Server-128.png',
 		online: true,
 		l_id: 0,
+		stat: 'Server di test che scoppierà presto 💣',
 	},
 };
 
@@ -20,9 +21,14 @@ var users_id = 1;
 var mess_id = 0;
 var image_id = 0;
 
-console.log('Server started on port 8008');
+console.log(getTimestamp(), 'Server started on port 8008');
 
 //Helper functions
+function getTimestamp() {
+	var date = new Date(Date.now()).toLocaleString('it-IT', { hour12: false, timeZone: 'Europe/Rome' });
+	return date.slice(11, 20);
+}
+
 function broadcast(msg) {
 	wss.clients.forEach( (client) => {
 			obj_send(client, msg);
@@ -35,7 +41,7 @@ function obj_send( conn, msg , c = 0) {
 		conn.send(JSON.stringify(msg));
 	}
 	else if (conn.readyState == conn.CLOSED) {
-		console.log('Connection closed');
+		console.log(getTimestamp(), 'Connection closed');
 	}
 	// Retry if not open, after 3 tries close connection
 	else if (c < 3) {
@@ -64,18 +70,19 @@ function onMessage(data) {
 					text: obj.text,
 					user: this.user,
 					m_id: mess_id++,
+					time: getTimestamp(),
 				};
-				console.log(this.user.name, 'wrote:', obj.text);
+				console.log(getTimestamp(), this.user.name, 'wrote:', obj.text);
 				messages.push(res);
 				broadcast(res);
 			}
-			else console.log('Empty message from :', this.user.name);
+			else console.log(getTimestamp(), 'Empty message from :', this.user.name);
 			break;
 		};
 	//Private message
 		case 'pm': {
 			if (!obj.dest || !obj.text || obj.text.length == 0) {
-				console.log('Invalid pm from:', this.user.name);
+				console.log(getTimestamp(), 'Invalid pm from:', this.user.name);
 				break;
 			}
 			else if (!conn_list[obj.dest.u_id]) {
@@ -92,8 +99,9 @@ function onMessage(data) {
 					text: obj.text,
 					user: this.user,
 					dest: obj.dest,
+					time: getTimestamp(),
 				};
-				console.log('Private message from', this.user.name, 'to', obj.dest.name, ':', obj.text);
+				console.log(getTimestamp(), 'Private message from', this.user.name, 'to', obj.dest.name, ':', obj.text);
 				obj_send(conn_list[obj.dest.u_id], res);
 				if (obj.dest.u_id != this.user.u_id) obj_send(this, res);
 				break;
@@ -103,11 +111,11 @@ function onMessage(data) {
 		case 'update': {
 			let new_setts = obj.user;
 			if (new_setts.u_id != this.user.u_id) {
-				console.log('User', this.user.name, 'tried to change settings of user', conn_list[new_setts.u_id].user.name);
+				console.log(getTimestamp(), 'User', this.user.name, 'tried to change settings of user', conn_list[new_setts.u_id].user.name);
 				break;
 			}
 			if (!new_setts.name || new_setts.name.length < 1 || new_setts.name.length > 10) {
-				console.log('User', this.user.name, 'tried to set invalid name');
+				console.log(getTimestamp(), 'User', this.user.name, 'tried to set invalid name');
 				break;
 			}
 			this.user = new_setts;
@@ -117,7 +125,7 @@ function onMessage(data) {
 				type: 'update',
 				user: this.user,
 			});
-			console.log('User', this.user.name, 'updated settings');
+			console.log(getTimestamp(), 'User', this.user.name, 'updated settings');
 			break;
 		};
 		default: {
@@ -137,6 +145,7 @@ wss.on('connection', (ws, req) => {
 		u_id: users_id,
 		name: params.query.id,
 		icon: "https://cdn-icons-png.flaticon.com/512/2202/220206" + image_id + ".png",
+		stat: 'Write something funny here 🤟',
 		online: true,
 	};
 	ws.user = new_user;
@@ -153,19 +162,18 @@ wss.on('connection', (ws, req) => {
 		users: users_list,
 		data: messages,
 	});
-	console.log('mess', messages);
 	//Send users list to newly connected users
 	//Send new user to all other users
 	broadcast({
 		type: 'update',
 		user: new_user,
 	});
-	console.log('New user:', ws.user.name, 'connected');
+	console.log(getTimestamp(), 'New user:', ws.user.name, 'connected');
 
 	ws.on('message', onMessage);
 
 	ws.on('close', () => {
-		console.log('Closed Connection with:', ws.user.name);
+		console.log(getTimestamp(), 'Closed Connection with:', ws.user.name);
 		ws.user.online = false;
 		users_list[ws.user.u_id] = ws.user;
 		delete conn_list[ws.user.u_id];
@@ -175,10 +183,10 @@ wss.on('connection', (ws, req) => {
 		});
 	});
 	ws.on('error', (err) => {
-		console.log('WebSocket Error:', err.message.toString())
+		console.log(getTimestamp(), 'WebSocket Error:', err.message.toString())
 	})
 });
 
 wss.on('close', () => {
-	console.log('Server not Listening anymore');
+	console.log(getTimestamp(), 'Server not Listening anymore');
 });

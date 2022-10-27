@@ -62,6 +62,11 @@ ul {
 	cursor: pointer;
 	margin: 2px 2px;
 }
+.people-list ul li .edit_status{
+	margin-right: 5px;
+	font-size: x-large;
+	transform: scale(-1, 1)
+}
 .people-list ul li:hover {
 	background: #6A6C75;
 }
@@ -69,8 +74,8 @@ ul {
 	background: #6A6C75;
 }
 .people-list ul img {
-	height: 45px;
-	width: 45px;
+	height: 50px;
+	width: 50px;
 	margin-right: 10px;
 }
 .people-list ul li:first-child {
@@ -78,7 +83,7 @@ ul {
 	border-bottom: #D8DADF 2px solid;
 }
 .people-list .status {
-	color: #92959E;
+	overflow: hidden;
 }
 .chat {
 	width: 70%;
@@ -208,7 +213,7 @@ ul {
 	background-color: transparent;
 	border: 1px solid transparent;
 	padding: 5px 12px;
-	font-size: 1rem;
+	font-size: 1.1rem;
 	border-radius: .25rem;
 	transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 	color: #86BB71;
@@ -222,7 +227,6 @@ ul {
 
 .online, .me, .offline {
 	margin-right: 3px;
-	font-size: 10px;
 }
 
 .online {
@@ -271,7 +275,7 @@ ul {
 	color: black;
 }
 .connection_set {
-	padding: 10px;
+	padding: 8px;
 	background-color: #434651;
 	color: white;
 	border-radius: 3px;
@@ -329,4 +333,28 @@ ul {
 	background-color: #bb7171;
 	border-color: #bb7171;
 }
+.people-list .name {
+	font: 20px "Lato", Arial, sans-serif;
+	font-weight: 700;
+}
+.people-list .status input {
+	width: 100%;
+	font: 13 "Lato", Arial, sans-serif;
+	border-radius: 3px;
+	border: none;
+}
+.people-list .status .passing_by {
+	transform: translateX(100%);
+	animation: my-animation 10s linear infinite;
+	font: 13px "Lato", Arial, sans-serif;
+	font-weight: 700;
+}
 
+@keyframes my-animation {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(-100%);
+	}
+}

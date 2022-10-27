@@ -19,18 +19,38 @@
 						@click="chat_id = usr.u_id"
 					>
 						<img :src="usr.icon" alt="avatar" />
-						<div>
+						<div style="width: 100%">
 							<div class="name">{{ usr.name }}</div>
 							<div class="status">
-								<i
+								<div
+									class="passing_by"
+									v-if="
+										usr.u_id != client.u_id ||
+										(usr.u_id == client.u_id && !edit_status)
+									"
 									:class="{
 										online: usr.online,
 										offline: !usr.online,
 										me: usr.u_id == client.u_id,
 									}"
-									>{{ usr.u_id }}
-								</i>
+								>
+									{{ usr.stat }}
+								</div>
+								<input
+									v-else
+									type="text"
+									class="me"
+									v-model="client.stat"
+									v-on:keyup.enter="updateStatus()"
+								/>
 							</div>
+						</div>
+						<div
+							v-if="usr.u_id == client.u_id"
+							class="edit_status"
+							@click="edit_status = !edit_status"
+						>
+							👁‍🗨
 						</div>
 					</li>
 				</ul>
@@ -55,7 +75,7 @@
 					<div v-if="!connected" class="connection_set">
 						<input type="text" placeholder="username" v-model="client.name" />
 						<input type="text" placeholder="address:port" v-model="address" />
-						<button @click="connect(client)">Connect</button>
+						<button @click="connect()">Connect</button>
 					</div>
 					<!-- Set an input field for the username and icon image url and a disconnect button -->
 					<div
@@ -84,7 +104,7 @@
 								class="message-data"
 								:class="{ 'align-right': msg.user.u_id == client.u_id }"
 							>
-								{{ msg.user.name }}
+								{{ msg.time }}
 							</div>
 							<div
 								class="message"
@@ -125,6 +145,7 @@ export default {
 			url: "ws://",
 			//Status
 			connected: false,
+			edit_status: false,
 			search_query: "",
 			errObj: {
 				conn_err: false,
@@ -138,6 +159,8 @@ export default {
 				name: "",
 				u_id: -1,
 				icon: "",
+				stat: "",
+				online: false,
 			},
 			server: {
 				name: "Not Connected Yet!",
@@ -169,13 +192,14 @@ export default {
 				}, 1000);
 			}
 		},
-		connect(client) {
+		connect() {
+			let mom = this.client;
 			//Validate input
-			if (!this.validateName(client)) return;
+			if (!this.validateName(mom)) return;
 			let addrs = "ws://" + this.address + "?id=";
-			addrs += client.name;
+			addrs += mom.name;
 			//Connect to the server
-			this.client = client;
+			this.client = mom;
 			try {
 				this.ws = new WebSocket(addrs);
 			} catch (error) {
@@ -252,7 +276,6 @@ export default {
 			}
 			let msg = JSON.parse(raw.data);
 			console.warn("[ MESSAGE ]", msg);
-			console.error(this.messages);
 			switch (msg.type) {
 				case "message": {
 					this.messages[this.server.u_id].push(msg);
@@ -326,13 +349,14 @@ export default {
 		// search for a user
 		search() {
 			this.resortUsers();
-			this.search_query.trim().toLowerCase();
+			this.search_query = this.search_query.trim().toLowerCase();
 			if (!this.search_query || this.search_query.lenght < 1) {
 				this.resortUsers();
 				console.warn("[ PERSONAL ] Empty search query");
 			}
 			this.ordered_users = this.ordered_users.filter((user) => {
-				return user.name.includes(this.search_query);
+				let res = user.name.toLowerCase();
+				return res.includes(this.search_query);
 			});
 			this.search_query = "";
 		},
@@ -382,6 +406,24 @@ export default {
 			client.name = name;
 			return true;
 		},
+		// update stat
+		updateStatus() {
+			this.edit_status = false;
+			this.client.stat.trim();
+			if (!this.client.stat || this.client.stat.length < 1) {
+				this.errObj.error = "Put a valit stat";
+				this.errObj.showError = true;
+				return;
+			}
+			this.obj_send({
+				type: "update",
+				user: this.client,
+				text: "",
+				data: {},
+				dest: {},
+			});
+			console.error("UPDATE STAT", this.client.stat);
+		},
 	},
 	watch: {
 		//Scroll to bottom when new message is added
@@ -423,5 +465,5 @@ export default {
 </script>
 
 <style>
-@import "../templ/comp_style.css";
+@import "../src/assets/style.css";
 </style>
