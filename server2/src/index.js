@@ -38,10 +38,9 @@ ConnectionService.server.on("connection", (socket, conn) => {
 
 	socket.on("close", () => {
 		UserService.setOnlineUser(user, false);
-		ConnectionService.sendData(
-			{ type: "users", users: UserService.getUsers() },
-			Array.from(ConnectionService.server.clients.keys())
-		);
+		ConnectionService.broadcast(
+			{ type: "update", user: UserService.getUserById(user.id) }
+			);
 	});
 
 	socket.on("message", (data) => MessageHandler.onMessage(data, user));
