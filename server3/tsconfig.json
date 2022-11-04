@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "module": "NodeNext",
+        "esModuleInterop": true,
+        "experimentalDecorators": true
+    },
+    "include": ["src/index.ts"],
+    "exclude": [
+        "node_modules"
+    ]
+}
